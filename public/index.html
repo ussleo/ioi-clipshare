@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ioiClipShare by Claude</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+
+    <div class="login-logo">
+      <!-- Logo: clipboard + signal arcs -->
+      <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+            <stop offset="0%"   stop-color="#f97316"/>
+            <stop offset="55%"  stop-color="#fb923c"/>
+            <stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Clipboard body -->
+        <rect x="10" y="14" width="26" height="32" rx="3" stroke="url(#lg)" stroke-width="2" fill="none" filter="url(#glow)"/>
+        <!-- Clip tab -->
+        <rect x="19" y="10" width="10" height="7" rx="2" stroke="url(#lg)" stroke-width="1.8" fill="none"/>
+        <!-- Signal arcs (right side) -->
+        <path d="M40 22 Q46 28 40 34" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.9" filter="url(#glow)"/>
+        <path d="M43 19 Q52 28 43 37" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.6"/>
+        <!-- Lines on clipboard -->
+        <line x1="17" y1="26" x2="30" y2="26" stroke="url(#lg)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+        <line x1="17" y1="31" x2="27" y2="31" stroke="url(#lg)" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        <line x1="17" y1="36" x2="24" y2="36" stroke="url(#lg)" stroke-width="1.5" stroke-linecap="round" opacity="0.3"/>
+      </svg>
+
+      <span class="brand-text">ioiCLIPSHARE</span>
+      <span class="brand-sub">by Claude · Secure Local Sync</span>
+    </div>
+
+    <input type="password" id="pinInput" placeholder="ENTER PIN" maxlength="20" autofocus>
+    <button onclick="login()">CONNECT SESSION</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- App Layout: sidebar + main -->
+<div class="app-wrapper" id="app">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <div id="calendar" class="calendar-widget"></div>
+    <div id="calTitles" class="cal-titles"></div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-logo">
+        <svg width="28" height="28" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="lg2" x1="0" y1="0" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+              <stop offset="0%"   stop-color="#f97316"/>
+              <stop offset="55%"  stop-color="#fb923c"/>
+              <stop offset="100%" stop-color="#a855f7"/>
+            </linearGradient>
+          </defs>
+          <rect x="10" y="14" width="26" height="32" rx="3" stroke="url(#lg2)" stroke-width="2.5" fill="none"/>
+          <rect x="19" y="10" width="10" height="7"  rx="2" stroke="url(#lg2)" stroke-width="2"   fill="none"/>
+          <path d="M40 22 Q46 28 40 34" stroke="#f97316" stroke-width="2" stroke-linecap="round" fill="none"/>
+          <path d="M43 19 Q52 28 43 37" stroke="#a855f7" stroke-width="1.8" stroke-linecap="round" fill="none" opacity="0.7"/>
+          <line x1="17" y1="26" x2="30" y2="26" stroke="url(#lg2)" stroke-width="2" stroke-linecap="round" opacity="0.7"/>
+          <line x1="17" y1="31" x2="27" y2="31" stroke="url(#lg2)" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+        <div>
+          <span class="brand-text">ioiCLIPSHARE</span>
+          <span class="brand-by">by Claude</span>
+        </div>
+      </div>
+
+      <div class="status">
+        <span class="dot" id="wsDot"></span>
+        <span id="wsLabel">LIVE</span>
+        <button class="clip-btn" onclick="loadClips()" title="Refresh">⟳</button>
+        <span class="device-badge" id="deviceLabel"></span>
+        <button class="btn-wipe" onclick="showWipeConfirm()">⌫ WIPE</button>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+      <input type="text" id="clipLabel" class="label-input" placeholder="// título — e.g. 'DB Credentials'">
+      <textarea id="clipInput" placeholder="// pega texto, URLs, o cualquier cosa... (Ctrl+Enter para enviar)"></textarea>
+      <div class="staged-files" id="stagedFiles"></div>
+      <div class="input-actions">
+        <button class="btn primary" onclick="sendComposite()">▶ SEND</button>
+        <button class="btn" onclick="document.getElementById('fileInput').click()">⊕ ATTACH<span class="staged-count" id="stagedCount"></span></button>
+        <input type="file" class="file-input" id="fileInput" onchange="stageFiles(this)" multiple>
+      </div>
+    </div>
+
+    <!-- Clips Feed -->
+    <div class="clips" id="clips"></div>
+    <div class="empty" id="emptyState">
+      <div class="empty-icon">◉</div>
+      <p>// no transmissions yet — waiting for signal</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- Wipe Confirm Modal -->
+<div class="modal-overlay" id="wipeModal">
+  <div class="modal-box">
+    <div class="modal-icon">⚠</div>
+    <h3>WIPE ALL DATA?</h3>
+    <p>Esto eliminará permanentemente todos los clips.<br>Esta acción no se puede deshacer.</p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeWipeConfirm()">CANCELAR</button>
+      <button class="btn danger" onclick="confirmWipe()">SÍ, BORRAR TODO</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

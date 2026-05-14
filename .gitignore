@@ -1,6 +1,11 @@
 node_modules/
 uploads/
 clipshare-data.json
+clipshare-data.json.migrated
+*.db
+*.db-shm
+*.db-wal
 *.log
 .DS_Store
 Thumbs.db
+.env
